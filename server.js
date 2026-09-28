@@ -4,7 +4,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 const __dirname=path.dirname(fileURLToPath(import.meta.url)),app=express(),PORT=Number(process.env.PORT||3000),prod=process.env.NODE_ENV==="production";
-const dbUrl=process.env.DATABASE_URL||"";\nconst pool=dbUrl?new pg.Pool({connectionString:dbUrl,ssl:/railway\\.internal/i.test(dbUrl)?false:(prod?{rejectUnauthorized:false}:undefined),max:10}):null;
+const dbUrl=process.env.DATABASE_URL||"";\nconst pool=dbUrl?new pg.Pool({connectionString:dbUrl,ssl:false,max:10}):null;
 app.disable("x-powered-by");app.use(express.json({limit:"2mb"}));
 const buckets=new Map();const rate=(name,max=60,win=60000)=>(req,res,next)=>{const k=name+":"+(req.ip||"unknown"),now=Date.now();let b=buckets.get(k);if(!b||now-b.t>win)b={t:now,n:0};if(++b.n>max)return res.status(429).json({error:"Too many requests"});buckets.set(k,b);next()};
 const db=async(sql,p=[])=>pool?pool.query(sql,p):null, bad=(res,c,m)=>res.status(c).json({error:m}), text=(v,m=500)=>String(v??"").trim().slice(0,m), email=v=>text(v,200).toLowerCase();
