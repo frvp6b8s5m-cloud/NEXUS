@@ -21,5 +21,5 @@ app.get("/api/modules",async(req,res)=>{try{const r=await db("SELECT * FROM nexu
 app.post("/api/modules",async(req,res)=>{try{const {project_id,name,type,config={}}=req.body;if(!project_id||!name||!type)return res.status(400).json({error:"project_id, name and type are required"});const r=await db("INSERT INTO nexus_modules(project_id,name,type,config) VALUES($1,$2,$3,$4) RETURNING *",[project_id,name,type,config]);if(!r)return res.status(503).json({error:"DATABASE_URL is not configured"});await db("INSERT INTO nexus_events(type,payload) VALUES($1,$2)",["module.created",{id:r.rows[0].id,project_id,type}]);res.status(201).json(r.rows[0])}catch(e){res.status(500).json({error:e.message})}});
 app.get("/api/events",async(_,res)=>{try{const r=await db("SELECT * FROM nexus_events ORDER BY created_at DESC LIMIT 50");res.json(r?r.rows:[])}catch(e){res.status(500).json({error:e.message})}});
 app.use(express.static(path.join(__dirname,"public")));
-app.get("*",(req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
+app.use((req,res)=>res.sendFile(path.join(__dirname,"public","index.html")));
 init().then(()=>app.listen(PORT,()=>console.log(`NEXUS listening on ${PORT}`))).catch(e=>{console.error(e);process.exit(1)});
